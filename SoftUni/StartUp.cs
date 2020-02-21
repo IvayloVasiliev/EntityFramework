@@ -1,4 +1,5 @@
 ﻿using SoftUni.Data;
+using SoftUni.Models;
 using System;
 using System.Linq;
 using System.Text;
@@ -11,9 +12,41 @@ namespace SoftUni
         {
             using (SoftUniContext contex = new SoftUniContext())
             {
-                var result = GetEmployeesFromResearchAndDevelopment(contex);
+                var result = AddNewAddressToEmployee(contex);
                 Console.WriteLine(result);
             }
+        }
+
+        public static string AddNewAddressToEmployee(SoftUniContext context)
+        {
+            var address = new Address
+            {
+                AddressText = "Vitoshka 15",
+                TownId = 4
+            };
+            //can ommit
+            //context.Addresses.Add(address); 
+
+            var nakov = context.Employees
+                .FirstOrDefault(x => x.LastName == "Nakov");
+
+            nakov.Address = address;
+            context.SaveChanges();
+
+            var employeeAddresses = context.Employees
+                .OrderByDescending(x => x.AddressId)
+                .Select(a => a.Address.AddressText)
+                .Take(10)
+                .ToList();
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var employeeAddress in employeeAddresses)
+            {
+                sb.AppendLine($"{employeeAddress}");
+            }
+
+            return sb.ToString().TrimEnd();
         }
 
         public static string GetEmployeesFromResearchAndDevelopment(SoftUniContext context)
