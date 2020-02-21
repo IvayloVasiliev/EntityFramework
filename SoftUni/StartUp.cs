@@ -11,9 +11,30 @@ namespace SoftUni
         {
             using (SoftUniContext contex = new SoftUniContext())
             {
-                var result = GetEmployeesFullInformation(contex);
+                var result = GetEmployeesWithSalaryOver50000(contex);
                 Console.WriteLine(result);
             }
+        }
+
+        public static string GetEmployeesWithSalaryOver50000(SoftUniContext context)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var employees = context.Employees
+                .Where(s => s.Salary > 50000)
+                .Select(e => new
+                {
+                    e.FirstName,
+                    e.Salary
+                })                
+                .OrderBy(x => x.FirstName)
+                .ToList();
+
+            foreach (var employee in employees)
+            {
+                sb.AppendLine($"{employee.FirstName} - {employee.Salary:f2}");
+            }
+            return sb.ToString();
         }
 
         public static string GetEmployeesFullInformation(SoftUniContext context)
