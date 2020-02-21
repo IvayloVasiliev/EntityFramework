@@ -1,6 +1,7 @@
 ﻿using SoftUni.Data;
 using SoftUni.Models;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -12,9 +13,48 @@ namespace SoftUni
         {
             using (SoftUniContext contex = new SoftUniContext())
             {
-                var result = AddNewAddressToEmployee(contex);
+                var result = GetEmployeesInPeriod(contex);
                 Console.WriteLine(result);
             }
+        }
+
+        public static string GetEmployeesInPeriod(SoftUniContext context)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var employees = context.Employees
+                .Where(p => p.EmployeesProjects.Any(s => s.Project.StartDate.Year >= 2001 &&
+                                                    s.Project.StartDate.Year <= 2003))
+                .Select(x => new
+                {
+                    EmployeeFullName = x.FirstName + " " + x.LastName,
+                    ManagerFullName = x.Manager.FirstName + " " + x.Manager.LastName,
+                    Projects = x.EmployeesProjects.Select(p => new
+                    {
+                        ProjectName = p.Project.Name,
+                        StartDate = p.Project.StartDate,
+                        EndDate = p.Project.EndDate
+                    }).ToList()
+                })
+                .Take(10)
+                .ToList();
+
+            foreach (var employee in employees)
+            {
+                sb.AppendLine($"{employee.EmployeeFullName} - Manager {employee.ManagerFullName}");
+
+                foreach (var project in employee.Projects)
+                {
+                    var startDate = project.StartDate.ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
+
+                    var endDate = project.EndDate.HasValue ?
+                        project.EndDate.Value.ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture)
+                        : "not finished";
+                    
+                    sb.AppendLine($"--{project.ProjectName} - {startDate} - {endDate}");
+                }
+            }
+            return sb.ToString().TrimEnd();
         }
 
         public static string AddNewAddressToEmployee(SoftUniContext context)
