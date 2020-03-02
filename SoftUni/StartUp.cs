@@ -13,29 +13,45 @@ namespace SoftUni
         {
             using (SoftUniContext contex = new SoftUniContext())
             {
-                var result = GetAddressesByTown(contex);
+                var result = GetDepartmentsWithMoreThan5Employees(contex);
                 Console.WriteLine(result);
             }
         }
 
-        //public static string GetDepartmentsWithMoreThan5Employees(SoftUniContext context)
-        //{
-        //    var departments = context.Departments
-        //        .Where(e => e.Employees.Count > 5)
-        //        .OrderBy(e => e.Employees.Count)
-        //        .ThenBy(d => d.Name)
-        //        .Select(x =>  new 
-        //        {
-        //            x.Name, 
+        public static string GetDepartmentsWithMoreThan5Employees(SoftUniContext context)
+        {
+            StringBuilder sb = new StringBuilder();
 
-        //        })
+            var departments = context.Departments
+                .Where(e => e.Employees.Count > 5)
+                .OrderBy(e => e.Employees.Count)
+                .ThenBy(d => d.Name)
+                .Select(x => new
+                {
+                    DepartmetnName = x.Name,
+                    ManagerFullName = x.Manager.FirstName + " " + x.Manager.LastName,
+                    Emplyees = x.Employees.Select(e =>  new 
+                    {
+                        EmployeeFullName = e.FirstName + " " + e.LastName,
+                        JobTitle = e.JobTitle
+                    })
+                    .OrderBy(f => f.EmployeeFullName)
+                    .ToList()
+                })
+                .ToList();
 
+            foreach (var department in departments)
+            {
+                sb.AppendLine($"{department.DepartmetnName} - {department.ManagerFullName}");
 
-        //}
-
-
-
-
+                foreach (var employee in department.Emplyees)
+                {
+                    sb.AppendLine($"{employee.EmployeeFullName} - {employee.JobTitle}");
+                }
+            }
+            return sb.ToString().TrimEnd();
+        }
+                     
         public static string GetAddressesByTown(SoftUniContext context)
         {
             StringBuilder sb = new StringBuilder();
