@@ -14,9 +14,38 @@ namespace SoftUni
         {
             using (SoftUniContext contex = new SoftUniContext())
             {
-                var result = GetEmployeesByFirstNameStartingWithSa(contex);
+                var result = DeleteProjectById(contex);
                 Console.WriteLine(result);
             }
+        }
+
+        public static string DeleteProjectById(SoftUniContext context)
+        {
+            var project = context.Projects
+                .FirstOrDefault(x => x.ProjectId == 2);
+
+            var employeeProjects = context.EmployeesProjects
+                .Where(x => x.ProjectId == 2)
+                .ToList();
+
+            context.EmployeesProjects.RemoveRange(employeeProjects);
+
+            context.Projects.Remove(project);
+
+            context.SaveChanges();
+
+            var projects = context.Projects
+                .Select(x => x.Name)
+                .Take(10)
+                .ToList();
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var currentProject in projects)
+            {
+                sb.AppendLine(currentProject);
+            }
+            return sb.ToString().TrimEnd();
         }
 
         public static string GetEmployeesByFirstNameStartingWithSa(SoftUniContext context)
