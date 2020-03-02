@@ -1,4 +1,5 @@
-﻿using SoftUni.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using SoftUni.Data;
 using SoftUni.Models;
 using System;
 using System.Globalization;
@@ -13,12 +14,37 @@ namespace SoftUni
         {
             using (SoftUniContext contex = new SoftUniContext())
             {
-                var result = GetDepartmentsWithMoreThan5Employees(contex);
+                var result = GetEmployeesByFirstNameStartingWithSa(contex);
                 Console.WriteLine(result);
             }
         }
 
-        public static string GetDepartmentsWithMoreThan5Employees(SoftUniContext context)
+        public static string GetEmployeesByFirstNameStartingWithSa(SoftUniContext context)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var employees = context.Employees
+                //.Where(f => f.FirstName.StartsWith("Sa"))
+                .Where(f => EF.Functions.Like(f.FirstName, "sa%"))
+                .Select(x => new
+                {
+                    x.FirstName,
+                    x.LastName,
+                    x.JobTitle,
+                    x.Salary
+                })
+                .OrderBy(f => f.FirstName)
+                .ThenBy(f => f.LastName)
+                .ToList();
+
+            foreach (var employee in employees)
+            {
+                sb.AppendLine($"{employee.FirstName} {employee.LastName} - {employee.JobTitle} - (${employee.Salary:F2})");
+            }
+            return sb.ToString().TrimEnd();
+        }
+
+            public static string GetDepartmentsWithMoreThan5Employees(SoftUniContext context)
         {
             StringBuilder sb = new StringBuilder();
 
